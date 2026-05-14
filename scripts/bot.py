@@ -223,34 +223,58 @@ def handle_report(token: str, chat_id: str) -> None:
 
 
 def handle_free_text(token: str, chat_id: str, question: str) -> None:
-    analysis_files = sorted((PROJECT_ROOT / "reports").glob("analysis_*.json"))
-    if not analysis_files:
-        send_message(token, chat_id,
-            "📭 아직 수집된 데이터가 없습니다.\n/report 명령으로 먼저 리포트를 생성해주세요.")
-        return
+    send_message(token, chat_id, f"🔍 <b>{question}</b> 검색 중...")
 
-    with open(analysis_files[-1], encoding="utf-8") as f:
-        analysis = json.load(f)
+    try:
+        import feedparser
+        from urllib.parse import quote
 
-    question_lower = question.lower()
-    keywords = ["카카오", "토스", "네이버", "삼성", "bnpl", "오픈뱅킹", "마이데이터", "규제", "ai", "ux"]
-    all_issues = analysis.get("top_issues", [])
-
-    matched = [
-        issue for issue in all_issues
-        if any(kw in question_lower for kw in keywords
-               if kw in (issue["title"] + issue.get("description", "")).lower())
-    ] or all_issues
-
-    lines = [f"💬 <b>질문</b>: {question}\n\n📌 <b>관련 인사이트</b>"]
-    for issue in matched[:2]:
-        lines.append(
-            f"\n<b>{issue['rank']}. {issue['title']}</b>\n"
-            f"{issue['description']}\n"
-            f"💡 기회: {issue['opportunity']}\n"
-            f"⚠️ 리스크: {issue['risk']}\n"
-            f"→ {issue['one_line_comment']}"
+        feed = feedparser.parse(
+            f"https://news.google.com/rss/search?q={quote(question)}&hl=ko&gl=KR&ceid=KR:ko"
         )
+        entries = feed.entries[:5]
+    except Exception:
+        entries = []
+
+    lines = [f"💬 <b>질문</b>: {question}\n"]
+
+    # 로컬 분석 데이터가 있으면 우선 참조
+    analysis_files = sorted((PROJECT_ROOT / "reports").glob("analysis_*.json"))
+    if analysis_files:
+        with open(analysis_files[-1], encoding="utf-8") as f:
+            analysis = json.load(f)
+        q_lower = question.lower()
+        matched = [
+            issue for issue in analysis.get("top_issues", [])
+            if any(kw in q_lower for kw in (issue["title"] + issue.get("description", "")).lower().split())
+        ] or analysis.get("top_issues", [])
+
+        if matched:
+            lines.append("📌 <b>주간 리포트 인사이트</b>")
+            for issue in matched[:2]:
+                lines.append(
+                    f"\n<b>{issue['rank']}. {issue['title']}</b>\n"
+                    f"{issue['description']}\n"
+                    f"💡 기회: {issue['opportunity']}\n"
+                    f"⚠️ 리스크: {issue['risk']}\n"
+                    f"→ {issue['one_line_comment']}"
+                )
+            lines.append("")
+
+    # 실시간 웹 검색 결과 추가
+    if entries:
+        lines.append("📰 <b>실시간 관련 뉴스</b>")
+        for e in entries:
+            title = e.get("title", "")
+            link = e.get("link", "")
+            source = e.get("source", {}).get("title", "")
+            pub = e.get("published", "")[:10] if e.get("published") else ""
+            lines.append(f'\n- <a href="{link}">{title}</a>')
+            if source or pub:
+                lines.append(f"  <i>{source} {pub}</i>")
+    else:
+        if not analysis_files:
+            lines.append("📭 검색 결과가 없습니다. /report 명령으로 리포트를 먼저 생성해주세요.")
 
     send_message(token, chat_id, "\n".join(lines))
 
