@@ -47,7 +47,12 @@ def send_telegram_message(token: str, chat_id: str, text: str) -> dict:
         "parse_mode": "HTML",
         "disable_web_page_preview": False
     }
-    response = requests.post(url, json=payload, timeout=10)
+    response = requests.post(
+        url,
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        headers={"Content-Type": "application/json; charset=utf-8"},
+        timeout=10,
+    )
     response.raise_for_status()
     return response.json()
 ```
