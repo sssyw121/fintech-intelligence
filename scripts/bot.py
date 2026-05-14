@@ -222,13 +222,34 @@ def handle_report(token: str, chat_id: str) -> None:
         send_message(token, chat_id, f"❌ 오류: {e}")
 
 
+def _fetch_article_content(url: str) -> tuple[str, str]:
+    """RSS 링크 → (실제 URL, 본문 텍스트)"""
+    try:
+        from bs4 import BeautifulSoup
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                          "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        r = requests.get(url, headers=headers, timeout=8, allow_redirects=True)
+        real_url = r.url
+        r.encoding = r.apparent_encoding or "utf-8"
+        soup = BeautifulSoup(r.text, "lxml")
+        for tag in soup(["script", "style", "nav", "header", "footer", "aside"]):
+            tag.decompose()
+        paras = [p.get_text(" ", strip=True) for p in soup.find_all("p") if len(p.get_text(strip=True)) > 30]
+        return real_url, " ".join(paras)[:1000]
+    except Exception:
+        return url, ""
+
+
 def handle_free_text(token: str, chat_id: str, question: str) -> None:
+    import feedparser
+    from urllib.parse import quote
+
     send_message(token, chat_id, f"🔍 <b>{question}</b> 검색 중...")
 
+    # 1. Google News RSS 실시간 검색
     try:
-        import feedparser
-        from urllib.parse import quote
-
         feed = feedparser.parse(
             f"https://news.google.com/rss/search?q={quote(question)}&hl=ko&gl=KR&ceid=KR:ko"
         )
@@ -236,45 +257,66 @@ def handle_free_text(token: str, chat_id: str, question: str) -> None:
     except Exception:
         entries = []
 
-    lines = [f"💬 <b>질문</b>: {question}\n"]
+    # 2. 상위 3개 기사 본문 fetch
+    articles = []
+    for entry in entries[:3]:
+        title = entry.get("title", "")
+        rss_url = entry.get("link", "")
+        source = entry.get("source", {}).get("title", "")
+        pub = entry.get("published", "")[:10] if entry.get("published") else ""
+        real_url, content = _fetch_article_content(rss_url)
+        articles.append({"title": title, "url": real_url, "source": source,
+                         "published": pub, "content": content})
 
-    # 로컬 분석 데이터가 있으면 우선 참조
-    analysis_files = sorted((PROJECT_ROOT / "reports").glob("analysis_*.json"))
-    if analysis_files:
-        with open(analysis_files[-1], encoding="utf-8") as f:
-            analysis = json.load(f)
-        q_lower = question.lower()
-        matched = [
-            issue for issue in analysis.get("top_issues", [])
-            if any(kw in q_lower for kw in (issue["title"] + issue.get("description", "")).lower().split())
-        ] or analysis.get("top_issues", [])
+    # 3. Claude API로 질문에 맞는 답변 합성 (키 있을 때)
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if api_key and articles:
+        try:
+            import anthropic
+            client = anthropic.Anthropic(api_key=api_key)
+            articles_text = "\n\n".join(
+                f"[기사{i+1}] {a['title']} ({a['source']}, {a['published']})\n"
+                f"URL: {a['url']}\n내용: {a['content'][:600]}"
+                for i, a in enumerate(articles)
+            )
+            prompt = (
+                f"사용자 질문: {question}\n\n"
+                f"관련 뉴스 기사:\n{articles_text}\n\n"
+                "핀테크 PM 관점에서 위 기사를 읽고 질문에 답하세요.\n"
+                "형식: 핵심 요약 2-3문장 → PM 관점 시사점 1-2문장. HTML 태그 없이 텍스트만."
+            )
+            msg = client.messages.create(
+                model="claude-sonnet-4-6",
+                max_tokens=600,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            answer = msg.content[0].text.strip()
+            lines = [
+                f"💬 <b>Q: {question}</b>\n",
+                f"🤖 <b>AI 분석</b>\n{answer}\n",
+                "📰 <b>참고 기사</b>",
+            ]
+            for a in articles:
+                lines.append(f'• <a href="{a["url"]}">{a["title"]}</a>')
+                if a["source"]:
+                    lines[-1] += f" <i>({a['source']})</i>"
+            send_message(token, chat_id, "\n".join(lines))
+            return
+        except Exception as e:
+            log(f"[WARN] Claude 자유질문 오류: {e}")
 
-        if matched:
-            lines.append("📌 <b>주간 리포트 인사이트</b>")
-            for issue in matched[:2]:
-                lines.append(
-                    f"\n<b>{issue['rank']}. {issue['title']}</b>\n"
-                    f"{issue['description']}\n"
-                    f"💡 기회: {issue['opportunity']}\n"
-                    f"⚠️ 리스크: {issue['risk']}\n"
-                    f"→ {issue['one_line_comment']}"
-                )
-            lines.append("")
-
-    # 실시간 웹 검색 결과 추가
-    if entries:
-        lines.append("📰 <b>실시간 관련 뉴스</b>")
-        for e in entries:
-            title = e.get("title", "")
-            link = e.get("link", "")
-            source = e.get("source", {}).get("title", "")
-            pub = e.get("published", "")[:10] if e.get("published") else ""
-            lines.append(f'\n- <a href="{link}">{title}</a>')
-            if source or pub:
-                lines.append(f"  <i>{source} {pub}</i>")
+    # 4. 폴백: 기사 목록 + 본문 요약 직접 포매팅
+    lines = [f"💬 <b>Q: {question}</b>\n", "📰 <b>관련 뉴스</b>"]
+    if articles:
+        for a in articles:
+            lines.append(f'\n• <a href="{a["url"]}">{a["title"]}</a>')
+            if a["source"]:
+                lines.append(f'  <i>{a["source"]} {a["published"]}</i>')
+            if a["content"]:
+                lines.append(f'  {a["content"][:120]}...')
     else:
-        if not analysis_files:
-            lines.append("📭 검색 결과가 없습니다. /report 명령으로 리포트를 먼저 생성해주세요.")
+        lines.append("검색 결과가 없습니다.")
+        lines.append("\n💡 ANTHROPIC_API_KEY를 .env에 추가하면 AI 기반 답변이 제공됩니다.")
 
     send_message(token, chat_id, "\n".join(lines))
 

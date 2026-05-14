@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 STEP 3: 텔레그램 리포트 발송
-분석 JSON을 HTML 메시지로 포매팅해 텔레그램으로 발송한다.
+분석 JSON을 HTML로 포매팅해 링크·요약 포함 텔레그램 메시지를 발송한다.
 """
 
 import json
 import os
-import sys
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -15,6 +14,7 @@ import requests
 
 KST = ZoneInfo("Asia/Seoul")
 PROJECT_ROOT = Path(__file__).parent.parent
+RANK_EMOJI = {1: "①", 2: "②", 3: "③"}
 
 
 def load_env() -> tuple[str, str]:
@@ -25,7 +25,6 @@ def load_env() -> tuple[str, str]:
             if line and not line.startswith("#") and "=" in line:
                 k, _, v = line.partition("=")
                 os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
-
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
     if not token or not chat_id:
@@ -48,8 +47,6 @@ def format_message(analysis: dict) -> str:
     issues = analysis.get("top_issues", [])
     analyzed_at = analysis.get("analyzed_at", "")[:16].replace("T", " ")
 
-    RANK_EMOJI = {1: "①", 2: "②", 3: "③"}
-
     lines = [
         "📊 <b>핀테크 인텔리전스 위클리</b>",
         f"<i>{start} ~ {end}</i>",
@@ -68,22 +65,33 @@ def format_message(analysis: dict) -> str:
         desc = issue.get("description", "")
         opp = issue.get("opportunity", "")
         risk = issue.get("risk", "")
+        article_url = issue.get("article_url", "")
+        related = issue.get("related_articles", [])
+        emoji = RANK_EMOJI.get(rank, str(rank))
 
-        lines += [
-            "",
-            f"<b>{RANK_EMOJI.get(rank, rank)}. {title}</b>",
-            desc,
-            f"💡 기회: {opp}",
-            f"⚠️ 리스크: {risk}",
-        ]
+        # 이슈 제목 (링크 포함)
+        if article_url:
+            title_line = f'<b>{emoji}. <a href="{article_url}">{title}</a></b>'
+        else:
+            title_line = f"<b>{emoji}. {title}</b>"
+
+        lines += ["", title_line, desc, f"💡 기회: {opp}", f"⚠️ 리스크: {risk}"]
+
+        # 관련 기사 링크
+        if related:
+            rel_links = " | ".join(
+                f'<a href="{r["url"]}">{r["title"][:25]}...</a>'
+                for r in related[:2]
+                if r.get("url") and r.get("title")
+            )
+            if rel_links:
+                lines.append(f"📎 관련: {rel_links}")
+
         if rank < 3:
             lines.append("─────────────────────")
 
-    lines += [
-        "",
-        "━━━━━━━━━━━━━━━━━━━━",
-        "📌 <b>PM 한줄 코멘트</b>",
-    ]
+    # PM 한줄 코멘트
+    lines += ["", "━━━━━━━━━━━━━━━━━━━━", "📌 <b>PM 한줄 코멘트</b>"]
     for issue in issues:
         rank = issue.get("rank", 0)
         comment = issue.get("one_line_comment", "")
@@ -92,7 +100,7 @@ def format_message(analysis: dict) -> str:
     lines += [
         "",
         "━━━━━━━━━━━━━━━━━━━━",
-        f"<i>🤖 fintech-intelligence | 분석 시각: {analyzed_at}</i>",
+        f"<i>🤖 fintech-intelligence | {analyzed_at}</i>",
     ]
 
     return "\n".join(lines)
@@ -103,12 +111,12 @@ def send(token: str, chat_id: str, text: str) -> None:
     parts = _split(text)
     for i, part in enumerate(parts, 1):
         payload = json.dumps(
-            {"chat_id": chat_id, "text": part, "parse_mode": "HTML"},
+            {"chat_id": chat_id, "text": part, "parse_mode": "HTML",
+             "disable_web_page_preview": True},
             ensure_ascii=False,
         ).encode("utf-8")
         r = requests.post(
-            url,
-            data=payload,
+            url, data=payload,
             headers={"Content-Type": "application/json; charset=utf-8"},
             timeout=10,
         )
@@ -125,8 +133,7 @@ def _split(text: str, limit: int = 4096) -> list[str]:
             parts.append(text)
             break
         idx = text.rfind("\n", 0, limit)
-        if idx == -1:
-            idx = limit
+        idx = idx if idx != -1 else limit
         parts.append(text[:idx])
         text = text[idx:].lstrip("\n")
     return parts
