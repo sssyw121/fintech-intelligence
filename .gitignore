@@ -1,0 +1,29 @@
+# 환경변수 (절대 커밋 금지)
+.env
+
+# 수집·분석 결과 (로컬 런타임 데이터)
+reports/collected/
+reports/analysis_*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Windows 작업 스케줄러 임시 XML
+scripts/*.xml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
