@@ -64,7 +64,6 @@ def format_message(analysis: dict) -> str:
         title = issue.get("title", "")
         desc = issue.get("description", "")
         opp = issue.get("opportunity", "")
-        risk = issue.get("risk", "")
         article_url = issue.get("article_url", "")
         related = issue.get("related_articles", [])
         emoji = RANK_EMOJI.get(rank, str(rank))
@@ -75,7 +74,25 @@ def format_message(analysis: dict) -> str:
         else:
             title_line = f"<b>{emoji}. {title}</b>"
 
-        lines += ["", title_line, desc, f"💡 기회: {opp}", f"⚠️ 리스크: {risk}"]
+        risk_analysis = issue.get("risk_analysis", {})
+        lines += ["", title_line, desc, f"💡 기회: {opp}"]
+
+        # 5분류 리스크 분석
+        if risk_analysis:
+            RISK_LABELS = {
+                "regulatory": "📋 규제", "competition": "⚔️ 경쟁",
+                "technology": "🔧 기술", "user": "👤 사용자", "revenue": "💰 수익",
+            }
+            risk_lines = []
+            for key, label in RISK_LABELS.items():
+                val = risk_analysis.get(key, "")
+                if val:
+                    risk_lines.append(f"  {label}: {val}")
+            if risk_lines:
+                lines.append("⚠️ <b>리스크 분석</b>")
+                lines.extend(risk_lines)
+        elif issue.get("risk"):
+            lines.append(f"⚠️ 리스크: {issue['risk']}")
 
         # 관련 기사 링크
         if related:
