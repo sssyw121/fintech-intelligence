@@ -222,101 +222,83 @@ def handle_report(token: str, chat_id: str) -> None:
         send_message(token, chat_id, f"❌ 오류: {e}")
 
 
-def _fetch_article_content(url: str) -> tuple[str, str]:
-    """RSS 링크 → (실제 URL, 본문 텍스트)"""
+def _search_news_rss(query: str, limit: int = 5) -> list[dict]:
+    """Google News RSS로 키워드 검색, 제목/출처/링크 반환."""
+    import feedparser
+    from urllib.parse import quote
     try:
-        from bs4 import BeautifulSoup
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                          "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        }
-        r = requests.get(url, headers=headers, timeout=8, allow_redirects=True)
-        real_url = r.url
-        r.encoding = r.apparent_encoding or "utf-8"
-        soup = BeautifulSoup(r.text, "lxml")
-        for tag in soup(["script", "style", "nav", "header", "footer", "aside"]):
-            tag.decompose()
-        paras = [p.get_text(" ", strip=True) for p in soup.find_all("p") if len(p.get_text(strip=True)) > 30]
-        return real_url, " ".join(paras)[:1000]
+        feed = feedparser.parse(
+            f"https://news.google.com/rss/search?q={quote(query)}&hl=ko&gl=KR&ceid=KR:ko"
+        )
+        results = []
+        for e in feed.entries[:limit]:
+            results.append({
+                "title": e.get("title", ""),
+                "url": e.get("link", ""),
+                "source": e.get("source", {}).get("title", ""),
+                "published": (e.get("published") or "")[:10],
+            })
+        return results
     except Exception:
-        return url, ""
+        return []
+
+
+def _ask_claude_code(question: str) -> str:
+    """
+    Claude Code CLI를 subprocess로 호출해 웹 검색 기반 답변을 받는다.
+    별도 API 키 불필요 — Claude Code 자체의 WebSearch 도구를 활용한다.
+    """
+    prompt = (
+        f"핀테크 PM 관점에서 다음 질문에 답해줘: {question}\n\n"
+        "최신 웹 검색으로 관련 뉴스·정보를 찾아 핵심 내용을 2-3문장으로 요약하고, "
+        "PM 관점 시사점을 1-2문장으로 추가해줘. "
+        "HTML 태그 없이 순수 텍스트로만 답변해줘."
+    )
+    try:
+        result = subprocess.run(
+            ["claude", "--print", "--dangerously-skip-permissions", prompt],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=90,
+            cwd=str(PROJECT_ROOT),
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except FileNotFoundError:
+        log("[WARN] claude CLI 없음 — RSS 폴백 사용")
+    except subprocess.TimeoutExpired:
+        log("[WARN] claude CLI 타임아웃")
+    except Exception as e:
+        log(f"[WARN] claude CLI 오류: {e}")
+    return ""
 
 
 def handle_free_text(token: str, chat_id: str, question: str) -> None:
-    import feedparser
-    from urllib.parse import quote
-
     send_message(token, chat_id, f"🔍 <b>{question}</b> 검색 중...")
 
-    # 1. Google News RSS 실시간 검색
-    try:
-        feed = feedparser.parse(
-            f"https://news.google.com/rss/search?q={quote(question)}&hl=ko&gl=KR&ceid=KR:ko"
-        )
-        entries = feed.entries[:5]
-    except Exception:
-        entries = []
+    # 1. Claude Code CLI로 웹 검색 + AI 분석 (기본)
+    ai_answer = _ask_claude_code(question)
 
-    # 2. 상위 3개 기사 본문 fetch
-    articles = []
-    for entry in entries[:3]:
-        title = entry.get("title", "")
-        rss_url = entry.get("link", "")
-        source = entry.get("source", {}).get("title", "")
-        pub = entry.get("published", "")[:10] if entry.get("published") else ""
-        real_url, content = _fetch_article_content(rss_url)
-        articles.append({"title": title, "url": real_url, "source": source,
-                         "published": pub, "content": content})
+    # 2. Google News RSS로 관련 기사 링크 수집 (보조)
+    articles = _search_news_rss(question, limit=5)
 
-    # 3. Claude API로 질문에 맞는 답변 합성 (키 있을 때)
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
-    if api_key and articles:
-        try:
-            import anthropic
-            client = anthropic.Anthropic(api_key=api_key)
-            articles_text = "\n\n".join(
-                f"[기사{i+1}] {a['title']} ({a['source']}, {a['published']})\n"
-                f"URL: {a['url']}\n내용: {a['content'][:600]}"
-                for i, a in enumerate(articles)
-            )
-            prompt = (
-                f"사용자 질문: {question}\n\n"
-                f"관련 뉴스 기사:\n{articles_text}\n\n"
-                "핀테크 PM 관점에서 위 기사를 읽고 질문에 답하세요.\n"
-                "형식: 핵심 요약 2-3문장 → PM 관점 시사점 1-2문장. HTML 태그 없이 텍스트만."
-            )
-            msg = client.messages.create(
-                model="claude-sonnet-4-6",
-                max_tokens=600,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            answer = msg.content[0].text.strip()
-            lines = [
-                f"💬 <b>Q: {question}</b>\n",
-                f"🤖 <b>AI 분석</b>\n{answer}\n",
-                "📰 <b>참고 기사</b>",
-            ]
-            for a in articles:
-                lines.append(f'• <a href="{a["url"]}">{a["title"]}</a>')
-                if a["source"]:
-                    lines[-1] += f" <i>({a['source']})</i>"
-            send_message(token, chat_id, "\n".join(lines))
-            return
-        except Exception as e:
-            log(f"[WARN] Claude 자유질문 오류: {e}")
+    lines = [f"💬 <b>Q: {question}</b>\n"]
 
-    # 4. 폴백: 기사 목록 + 본문 요약 직접 포매팅
-    lines = [f"💬 <b>Q: {question}</b>\n", "📰 <b>관련 뉴스</b>"]
+    if ai_answer:
+        lines.append(f"🤖 <b>AI 분석</b>\n{ai_answer}")
+
     if articles:
-        for a in articles:
-            lines.append(f'\n• <a href="{a["url"]}">{a["title"]}</a>')
+        lines.append("\n📰 <b>관련 뉴스</b>")
+        for a in articles[:5]:
+            line = f'• <a href="{a["url"]}">{a["title"]}</a>'
             if a["source"]:
-                lines.append(f'  <i>{a["source"]} {a["published"]}</i>')
-            if a["content"]:
-                lines.append(f'  {a["content"][:120]}...')
-    else:
-        lines.append("검색 결과가 없습니다.")
-        lines.append("\n💡 ANTHROPIC_API_KEY를 .env에 추가하면 AI 기반 답변이 제공됩니다.")
+                line += f' <i>({a["source"]})</i>'
+            lines.append(line)
+
+    if not ai_answer and not articles:
+        lines.append("관련 뉴스를 찾지 못했습니다. 다른 키워드로 질문해보세요.")
 
     send_message(token, chat_id, "\n".join(lines))
 
