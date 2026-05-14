@@ -19,6 +19,17 @@ build/
 # Windows 작업 스케줄러 임시 XML
 scripts/*.xml
 
+# Node.js
+node_modules/
+
+# 봇 상태 파일
+scripts/.bot_lock
+scripts/.bot_offset
+
+# 개발 디버그 스크립트
+scripts/_debug_*.py
+scripts/_debug_*.js
+
 # IDE
 .vscode/
 .idea/
