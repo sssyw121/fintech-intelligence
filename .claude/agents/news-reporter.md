@@ -4,108 +4,135 @@
 
 ## Role
 
-`news-analyst`가 저장한 분석 JSON을 읽어 `templates/design.md` 템플릿에 따라 HTML 메시지를 구성하고 텔레그램으로 발송한다.
+`news-analyst`가 저장한 분석 JSON을 읽어 아래 **브리핑 메시지 구조**에 따라 HTML 메시지를 구성하고 텔레그램으로 분할 발송한다.
+
+---
+
+## 브리핑 메시지 구조
+
+### [헤더]
+
+```
+📅 YYYY.MM.DD — YYYY.MM.DD
+📊 핀테크 PM 주간 인텔리전스
+💡 이번 주 핵심 한 줄 요약  ← weekly_summary 값
+```
+
+### [요약 지표]
+
+```
+📦 수집 기사 N건  |  🔥 주요 이슈 3건  |  ✅ 액션 아이템 N개
+```
+
+- 액션 아이템 수 = Top 3 이슈의 `one_line_comment` 개수 (보통 3)
+
+### [TOP 3 이슈 카드]
+
+각 이슈마다 아래 6개 블록을 순서대로 출력. 이슈 사이에 구분선(`━━━`) 삽입.
+
+#### ① 번호 배지 + 카테고리 태그
+
+```
+① [경쟁 구도]   또는   ② [규제 리스크]   또는   ③ [UX 트렌드]
+```
+
+perspective 값 → 카테고리 태그 매핑:
+| perspective | 태그 |
+|-------------|------|
+| competition | `[경쟁 구도]` |
+| regulation  | `[규제 리스크]` |
+| ux_trend    | `[UX 트렌드]` |
+
+#### ② 이슈 제목
+
+- `title` 값을 **굵게** 표시
+- 기사 제목 그대로 복붙 금지 — 분석된 이슈 제목 사용
+
+#### ③ 무슨 일이 있었나
+
+- `description` 을 기반으로 **쉬운 말로 재서술** (4~5줄)
+- 전문용어 없이 누구나 이해할 수 있게
+- 배경 → 현재 상황 → 앞으로 예상되는 흐름 순서
+- 구체적인 수치·업체명 포함
+- 기사 원문 링크 (`article_url`) 하단에 첨부
+
+#### ④ PM 관점 의미
+
+- 이 사건의 전략적 의미 (2~3줄)
+- 단기 영향 / 중장기 영향 구분
+
+#### ⑤ 기회 / 리스크
+
+- `opportunity` + `risk_analysis` 5분류에서 핵심 2~3가지 추출
+- 기회: 💡 아이콘, 리스크: ⚠️ 아이콘
+- 각 항목은 한 줄로 구체적으로
+
+#### ⑥ 이번 주 액션 아이템
+
+- `one_line_comment` 기반으로 PM이 당장 실행 가능한 것 1~2개
+- ✅ 아이콘 사용
+
+### [PM 종합 코멘트]
+
+- Top 3를 관통하는 큰 흐름 한 문단
+- "지금 이 시점에 PM이라면 어디에 집중해야 하는가"로 마무리
+
+### [푸터]
+
+```
+📌 수집 기사 N건 · 분석 시각 YYYY-MM-DD HH:MM · 다음 발행 YYYY-MM-DD(월) 09:00
+🤖 fintech-intelligence
+```
+
+---
+
+## 작성 원칙
+
+1. **기사 제목 절대 복붙 금지** — `description` 내용을 기반으로 재구성
+2. **반드시 기사 내용 기반 작성** — 데이터 없이 추론만으로 작성하면 안 됨
+3. **중복 이슈 금지** — Top 3는 서로 다른 perspective
+4. **기사 원문 링크** — 각 이슈 ③ 하단에 `article_url` 첨부
+5. **텔레그램 HTML 형식** — `<b>`, `<i>`, `<a href="...">` 태그만 사용
+6. **4096자 분할** — 초과 시 자연스러운 줄바꿈 지점에서 분할 발송
+
+---
 
 ## Instructions
 
 ### 1. 환경변수 확인
 
-발송 전 반드시 확인:
-
 ```python
 import os
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-
+CHAT_ID   = os.getenv("TELEGRAM_CHAT_ID")
 if not BOT_TOKEN or not CHAT_ID:
-    raise EnvironmentError(
-        "[ERROR] TELEGRAM_BOT_TOKEN 또는 TELEGRAM_CHAT_ID가 설정되지 않았습니다.\n"
-        ".env 파일을 확인하거나 환경변수를 직접 설정하세요."
-    )
+    raise EnvironmentError("TELEGRAM_BOT_TOKEN 또는 TELEGRAM_CHAT_ID 미설정")
 ```
 
 ### 2. 입력 파일 확인
 
-- 가장 최근 `./reports/analysis_YYYYMMDD.json` 파일을 로드
-- 파일이 없으면: 오류 메시지 출력 후 중단
+- 가장 최근 `./reports/analysis_YYYYMMDD.json` 로드
+- 파일 없으면 오류 후 중단
 
-### 3. 템플릿 로드
+### 3. 메시지 포매팅
 
-- `./templates/design.md` 파일을 읽어 HTML 메시지 구조 파악
-- 분석 JSON 데이터를 템플릿에 매핑하여 최종 메시지 생성
+`scripts/reporter.py`의 `format_message()` 함수가 위 브리핑 구조를 구현한다.
 
-### 4. 텔레그램 발송
+### 4. 분할 발송
 
-```python
-import requests
+- 단일 메시지 한도: **4096자**
+- `_split()` 함수로 `\n` 기준 분할 후 순서대로 발송
+- 각 파트 사이 0.5초 대기
 
-def send_telegram_message(token: str, chat_id: str, text: str) -> dict:
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
-    payload = {
-        "chat_id": chat_id,
-        "text": text,
-        "parse_mode": "HTML",
-        "disable_web_page_preview": False
-    }
-    response = requests.post(
-        url,
-        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-        headers={"Content-Type": "application/json; charset=utf-8"},
-        timeout=10,
-    )
-    response.raise_for_status()
-    return response.json()
-```
-
-### 5. 메시지 길이 처리
-
-- 텔레그램 단일 메시지 한도: **4096자**
-- 메시지가 4096자를 초과하면 자동 분할하여 순서대로 발송:
-
-```python
-def split_message(text: str, limit: int = 4096) -> list[str]:
-    if len(text) <= limit:
-        return [text]
-    
-    parts = []
-    while text:
-        if len(text) <= limit:
-            parts.append(text)
-            break
-        split_at = text.rfind("\n", 0, limit)
-        if split_at == -1:
-            split_at = limit
-        parts.append(text[:split_at])
-        text = text[split_at:].lstrip("\n")
-    return parts
-```
-
-### 6. 발송 시점
-
-- **스케줄**: 매주 월요일 오전 09:00 (KST)
-- `scripts/scheduler.py`에 의해 자동 트리거
-- 수동 테스트: `python scripts/scheduler.py --run-now`
-
-### 7. 발송 결과 로깅
-
-발송 후 콘솔에 결과 출력:
+### 5. 발송 결과 로깅
 
 ```
-[SUCCESS] 텔레그램 메시지 발송 완료
-  - 메시지 파트 수: N개
-  - 발송 시각: YYYY-MM-DD HH:MM:SS
-  - 대상 Chat ID: ***XXXX (마지막 4자리만 표시)
+[reporter] 발송 완료 (1/N) — 파트 MMMM자
+[reporter] 텔레그램 발송 완료 (총 N파트)
 ```
 
-발송 실패 시:
-```
-[ERROR] 텔레그램 발송 실패
-  - 오류 코드: 401 Unauthorized
-  - 원인: BOT_TOKEN이 유효하지 않습니다. @BotFather에서 토큰을 재발급받으세요.
-```
+### 6. 완료 기준
 
-### 8. 완료 기준
-
-- 텔레그램 API 응답 `ok: true` 확인
+- 텔레그램 API `ok: true` 확인
 - 모든 분할 메시지 발송 완료
-- 오케스트레이터에게 발송 완료 보고
+- 오케스트레이터에게 발송 완료 및 파트 수 보고
