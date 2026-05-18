@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<!--
+  fintech-intelligence 공식 브리핑 디자인 템플릿
+  ─────────────────────────────────────────────
+  이 파일은 두 가지 용도로 사용됩니다.
+  1. 브라우저 미리보기 — 브리핑의 시각 구조와 색상을 확인하는 렌더링 레퍼런스
+  2. 텔레그램 포매팅 스펙 — reporter.py가 생성하는 HTML 메시지의 공식 구조 정의
+
+  변수 표기: {{ variable_name }}
+  출력 규칙: 텔레그램 HTML parse_mode 허용 태그만 사용 → <b> <i> <a href="..."> <code>
+  문자 제한: 단일 메시지 4096자, 초과 시 \n 기준으로 분할 발송
+-->
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>핀테크 PM 주간 인텔리전스 — 브리핑 템플릿</title>
+  <style>
+    /* ── 기본 레이아웃 ── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'Noto Sans KR', sans-serif;
+      background: #0e1117;
+      color: #e1e4e8;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 24px 16px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── 섹션 구분선 ── */
+    .divider {
+      border: none;
+      border-top: 1px solid #30363d;
+      margin: 16px 0;
+      letter-spacing: 2px;
+      text-align: center;
+      color: #8b949e;
+      font-size: 11px;
+    }
+    .divider::before { content: "━━━━━━━━━━━━━━━━━━━━"; }
+
+    /* ── 헤더 블록 ── */
+    .header {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+    }
+    .header .date-range {
+      font-size: 13px;
+      color: #58a6ff;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .header .report-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #f0f6fc;
+      margin-bottom: 8px;
+    }
+    .header .weekly-summary {
+      font-size: 13px;
+      color: #e3b341;
+      line-height: 1.5;
+    }
+
+    /* ── 요약 지표 바 ── */
+    .indicator-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .indicator-chip {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 12px;
+      color: #c9d1d9;
+    }
+    .indicator-chip b { color: #58a6ff; }
+
+    /* ── TOP 3 이슈 제목 ── */
+    .section-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #f85149;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── 이슈 카드 ── */
+    .issue-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+    }
+    .issue-card + .issue-card { margin-top: 4px; }
+
+    /* ① 번호 배지 + 카테고리 태그 */
+    .card-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .rank-badge {
+      font-size: 18px;
+      font-weight: 700;
+      color: #f0f6fc;
+    }
+    .category-tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #1f6feb33;
+      color: #79c0ff;
+      border: 1px solid #1f6feb66;
+    }
+    .category-tag.competition { background: #f8514933; color: #ffa198; border-color: #f8514966; }
+    .category-tag.regulation  { background: #3fb95033; color: #56d364; border-color: #3fb95066; }
+    .category-tag.ux_trend    { background: #d2a8ff33; color: #d2a8ff; border-color: #d2a8ff66; }
+
+    /* ② 이슈 제목 */
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #f0f6fc;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .card-title a { color: #58a6ff; text-decoration: none; }
+    .card-title a:hover { text-decoration: underline; }
+
+    /* ③④⑤⑥ 공통 블록 */
+    .card-block {
+      margin-bottom: 10px;
+    }
+    .card-block-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #8b949e;
+      margin-bottom: 4px;
+    }
+    .card-block-body {
+      font-size: 13px;
+      color: #c9d1d9;
+      line-height: 1.6;
+    }
+    .card-block-body i { color: #8b949e; font-style: normal; }
+    .article-link {
+      font-size: 12px;
+      color: #58a6ff;
+      text-decoration: none;
+    }
+    .article-link:hover { text-decoration: underline; }
+
+    /* ⑤ 기회/리스크 행 */
+    .opp-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      margin-bottom: 4px;
+      font-size: 13px;
+      color: #c9d1d9;
+    }
+    .opp-icon { flex-shrink: 0; }
+    .risk-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      margin-bottom: 3px;
+      font-size: 12px;
+      color: #8b949e;
+    }
+    .risk-label { color: #e3b341; font-weight: 600; flex-shrink: 0; }
+
+    /* ⑥ 액션 아이템 */
+    .action-item {
+      font-size: 13px;
+      color: #56d364;
+      font-weight: 500;
+    }
+
+    /* ── PM 종합 코멘트 ── */
+    .overall-comment {
+      background: #1c2128;
+      border: 1px solid #30363d;
+      border-left: 3px solid #e3b341;
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: #c9d1d9;
+      line-height: 1.7;
+    }
+    .overall-comment b { color: #f0f6fc; }
+
+    /* ── 푸터 ── */
+    .footer {
+      font-size: 11px;
+      color: #6e7681;
+      text-align: center;
+      padding: 8px 0;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════
+       헤더
+       소스: period.start / period.end / weekly_summary
+       ════════════════════════════════════════ -->
+  <div class="header">
+    <div class="date-range">📅 {{ period_start }} — {{ period_end }}</div>
+    <div class="report-title">📊 핀테크 PM 주간 인텔리전스</div>
+    <div class="weekly-summary">💡 {{ weekly_summary }}</div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       요약 지표
+       소스: total_articles / action_count(= len(top_issues))
+       ════════════════════════════════════════ -->
+  <div class="indicator-bar">
+    <span class="indicator-chip">📦 수집 기사 <b>{{ total_articles }}건</b></span>
+    <span class="indicator-chip">🔥 주요 이슈 <b>3건</b></span>
+    <span class="indicator-chip">✅ 액션 아이템 <b>{{ action_count }}개</b></span>
+  </div>
+
+  <div class="divider"></div>
+  <div class="section-label">🔥 TOP 3 이슈</div>
+
+  <!-- ════════════════════════════════════════
+       이슈 카드 #1  (rank=1)
+       perspective: competition | regulation | ux_trend
+       ════════════════════════════════════════ -->
+  <div class="issue-card">
+
+    <!-- ① 번호 배지 + 카테고리 태그 -->
+    <!-- perspective 값에 따라 category-tag 클래스 변경: competition / regulation / ux_trend -->
+    <div class="card-badge">
+      <span class="rank-badge">①</span>
+      <span class="category-tag {{ issue1_perspective }}">[경쟁 구도]</span>
+      <!-- 매핑: competition→[경쟁 구도]  regulation→[규제 리스크]  ux_trend→[UX 트렌드] -->
+    </div>
+
+    <!-- ② 이슈 제목 (article_url 있으면 링크, 없으면 텍스트) -->
+    <div class="card-title">
+      <a href="{{ issue1_article_url }}">{{ issue1_title }}</a>
+    </div>
+
+    <!-- ③ 무슨 일이 있었나 (description 원문 + 원문 링크) -->
+    <div class="card-block">
+      <div class="card-block-label">📰 무슨 일이 있었나</div>
+      <div class="card-block-body">
+        {{ issue1_description }}
+        <br><a class="article-link" href="{{ issue1_article_url }}">📎 원문 보기</a>
+      </div>
+    </div>
+
+    <!-- ④ PM 관점 의미 (description을 단기/중장기로 분할) -->
+    <div class="card-block">
+      <div class="card-block-label">🎯 PM 관점 의미</div>
+      <div class="card-block-body">
+        <i>단기:</i> {{ issue1_desc_short_term }}<br>
+        <i>중장기:</i> {{ issue1_desc_long_term }}
+      </div>
+    </div>
+
+    <!-- ⑤ 기회 / 리스크 (opportunity + risk_analysis 5분류 중 "제한적" 제외 상위 3개) -->
+    <div class="card-block">
+      <div class="card-block-label">⚡ 기회 / 리스크</div>
+      <div class="card-block-body">
+        <div class="opp-row">
+          <span class="opp-icon">💡</span>
+          <span>기회: {{ issue1_opportunity }}</span>
+        </div>
+        <!-- risk_analysis 5분류: regulatory(📋 규제) / competition(⚔️ 경쟁) / technology(🔧 기술) / user(👤 사용자) / revenue(💰 수익) -->
+        <!-- "제한적" 포함된 항목은 표시하지 않음. 최대 3개 표시. -->
+        <div class="risk-row">
+          <span class="opp-icon">⚠️</span>
+          <span class="risk-label">📋 규제</span>
+          <span>리스크: {{ issue1_risk_regulatory }}</span>
+        </div>
+        <div class="risk-row">
+          <span class="opp-icon">⚠️</span>
+          <span class="risk-label">⚔️ 경쟁</span>
+          <span>리스크: {{ issue1_risk_competition }}</span>
+        </div>
+        <div class="risk-row">
+          <span class="opp-icon">⚠️</span>
+          <span class="risk-label">🔧 기술</span>
+          <span>리스크: {{ issue1_risk_technology }}</span>
+        </div>
+        <!-- 나머지: 👤 사용자(user), 💰 수익(revenue) — 필요 시 추가 -->
+      </div>
+    </div>
+
+    <!-- ⑥ 이번 주 액션 아이템 (one_line_comment) -->
+    <div class="card-block">
+      <div class="card-block-label">✅ 이번 주 액션 아이템</div>
+      <div class="card-block-body action-item">{{ issue1_one_line_comment }}</div>
+    </div>
+
+  </div><!-- /issue-card #1 -->
+
+  <div class="divider"></div>
+
+  <!-- ════════════════════════════════════════
+       이슈 카드 #2  (rank=2)
+       ════════════════════════════════════════ -->
+  <div class="issue-card">
+    <div class="card-badge">
+      <span class="rank-badge">②</span>
+      <span class="category-tag {{ issue2_perspective }}">[규제 리스크]</span>
+    </div>
+    <div class="card-title">
+      <a href="{{ issue2_article_url }}">{{ issue2_title }}</a>
+    </div>
+    <div class="card-block">
+      <div class="card-block-label">📰 무슨 일이 있었나</div>
+      <div class="card-block-body">
+        {{ issue2_description }}
+        <br><a class="article-link" href="{{ issue2_article_url }}">📎 원문 보기</a>
+      </div>
+    </div>
+    <div class="card-block">
+      <div class="card-block-label">🎯 PM 관점 의미</div>
+      <div class="card-block-body">
+        <i>단기:</i> {{ issue2_desc_short_term }}<br>
+        <i>중장기:</i> {{ issue2_desc_long_term }}
+      </div>
+    </div>
+    <div class="card-block">
+      <div class="card-block-label">⚡ 기회 / 리스크</div>
+      <div class="card-block-body">
+        <div class="opp-row"><span class="opp-icon">💡</span><span>기회: {{ issue2_opportunity }}</span></div>
+        <div class="risk-row"><span class="opp-icon">⚠️</span><span class="risk-label">📋 규제</span><span>리스크: {{ issue2_risk_regulatory }}</span></div>
+        <div class="risk-row"><span class="opp-icon">⚠️</span><span class="risk-label">⚔️ 경쟁</span><span>리스크: {{ issue2_risk_competition }}</span></div>
+        <div class="risk-row"><span class="opp-icon">⚠️</span><span class="risk-label">🔧 기술</span><span>리스크: {{ issue2_risk_technology }}</span></div>
+      </div>
+    </div>
+    <div class="card-block">
+      <div class="card-block-label">✅ 이번 주 액션 아이템</div>
+      <div class="card-block-body action-item">{{ issue2_one_line_comment }}</div>
+    </div>
+  </div><!-- /issue-card #2 -->
+
+  <div class="divider"></div>
+
+  <!-- ════════════════════════════════════════
+       이슈 카드 #3  (rank=3)
+       ════════════════════════════════════════ -->
+  <div class="issue-card">
+    <div class="card-badge">
+      <span class="rank-badge">③</span>
+      <span class="category-tag {{ issue3_perspective }}">[UX 트렌드]</span>
+    </div>
+    <div class="card-title">
+      <a href="{{ issue3_article_url }}">{{ issue3_title }}</a>
+    </div>
+    <div class="card-block">
+      <div class="card-block-label">📰 무슨 일이 있었나</div>
+      <div class="card-block-body">
+        {{ issue3_description }}
+        <br><a class="article-link" href="{{ issue3_article_url }}">📎 원문 보기</a>
+      </div>
+    </div>
+    <div class="card-block">
+      <div class="card-block-label">🎯 PM 관점 의미</div>
+      <div class="card-block-body">
+        <i>단기:</i> {{ issue3_desc_short_term }}<br>
+        <i>중장기:</i> {{ issue3_desc_long_term }}
+      </div>
+    </div>
+    <div class="card-block">
+      <div class="card-block-label">⚡ 기회 / 리스크</div>
+      <div class="card-block-body">
+        <div class="opp-row"><span class="opp-icon">💡</span><span>기회: {{ issue3_opportunity }}</span></div>
+        <div class="risk-row"><span class="opp-icon">⚠️</span><span class="risk-label">📋 규제</span><span>리스크: {{ issue3_risk_regulatory }}</span></div>
+        <div class="risk-row"><span class="opp-icon">⚠️</span><span class="risk-label">⚔️ 경쟁</span><span>리스크: {{ issue3_risk_competition }}</span></div>
+        <div class="risk-row"><span class="opp-icon">⚠️</span><span class="risk-label">🔧 기술</span><span>리스크: {{ issue3_risk_technology }}</span></div>
+      </div>
+    </div>
+    <div class="card-block">
+      <div class="card-block-label">✅ 이번 주 액션 아이템</div>
+      <div class="card-block-body action-item">{{ issue3_one_line_comment }}</div>
+    </div>
+  </div><!-- /issue-card #3 -->
+
+  <div class="divider"></div>
+
+  <!-- ════════════════════════════════════════
+       PM 종합 코멘트
+       소스: top_issues[*].perspective / title / one_line_comment
+       구조: "이번 주 ... 세 축이 동시에 움직인 주 → 첫째 ... 둘째 ..."
+       ════════════════════════════════════════ -->
+  <div class="section-label" style="color:#e3b341;">📌 PM 종합 코멘트</div>
+  <div class="overall-comment">
+    이번 주 핀테크 시장은 <b>{{ perspective1 }} · {{ perspective2 }} · {{ perspective3 }}</b> 세 축이 동시에 움직인 주였습니다.
+    '{{ issue1_title_short }}', '{{ issue2_title_short }}' 등 굵직한 이슈가 맞물리며 시장 전반의 긴장감이 높아졌습니다.
+    지금 이 시점에 PM이라면 두 가지를 챙겨야 합니다.
+    첫째, {{ action_comment_1 }}.
+    둘째, {{ action_comment_last }}.
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ════════════════════════════════════════
+       푸터
+       소스: total_articles / analyzed_at / next_monday
+       ════════════════════════════════════════ -->
+  <div class="footer">
+    📌 수집 기사 {{ total_articles }}건 · 분석 시각 {{ analyzed_at }} · 다음 발행 {{ next_monday }}(월) 09:00<br>
+    🤖 fintech-intelligence
+  </div>
+
+</body>
+</html>
+
+<!--
+═══════════════════════════════════════════════════════
+  텔레그램 실제 발송 포맷 (reporter.py 기준 Telegram HTML)
+  이 섹션은 reporter.py가 생성하는 실제 Telegram 메시지 구조 참조용
+═══════════════════════════════════════════════════════
+
+[헤더]
+📅 <b>{{ period_start }} — {{ period_end }}</b>
+📊 <b>핀테크 PM 주간 인텔리전스</b>
+💡 {{ weekly_summary }}
+
+[요약 지표]
+📦 수집 기사 <b>{{ total_articles }}건</b>  |  🔥 주요 이슈 <b>3건</b>  |  ✅ 액션 아이템 <b>{{ action_count }}개</b>
+
+━━━━━━━━━━━━━━━━━━━━
+🔥 <b>TOP 3 이슈</b>
+
+[이슈 카드 × 3] — 각 카드 구조:
+
+<b>{{ rank_badge }} {{ category_tag }}</b>
+<b><a href="{{ article_url }}">{{ title }}</a></b>
+
+📰 <b>무슨 일이 있었나</b>
+{{ description }}
+📎 <a href="{{ article_url }}">원문 보기</a>
+
+🎯 <b>PM 관점 의미</b>
+<i>단기:</i> {{ desc_sentence_1 }}.
+<i>중장기:</i> {{ desc_sentences_rest }}.
+
+⚡ <b>기회 / 리스크</b>
+💡 기회: {{ opportunity }}
+⚠️ {{ risk_label_1 }} 리스크: {{ risk_value_1 }}
+⚠️ {{ risk_label_2 }} 리스크: {{ risk_value_2 }}
+⚠️ {{ risk_label_3 }} 리스크: {{ risk_value_3 }}
+
+✅ <b>이번 주 액션 아이템</b>
+{{ one_line_comment }}
+
+━━━━━━━━━━━━━━━━━━━━
+📌 <b>PM 종합 코멘트</b>
+이번 주 핀테크 시장은 <b>{{ perspective_str }}</b> 세 축이 동시에 움직인 주였습니다.
+'{{ issue1_title_short }}', '{{ issue2_title_short }}' 등 굵직한 이슈가 맞물리며 시장 전반의 긴장감이 높아졌습니다.
+지금 이 시점에 PM이라면 두 가지를 챙겨야 합니다.
+첫째, {{ action_comment_1 }}.
+둘째, {{ action_comment_last }}.
+
+━━━━━━━━━━━━━━━━━━━━
+<i>📌 수집 기사 {{ total_articles }}건 · 분석 시각 {{ analyzed_at }} · 다음 발행 {{ next_monday }}(월) 09:00</i>
+<i>🤖 fintech-intelligence</i>
+
+═══════════════════════════════════════════════════════
+  변수 매핑표 (JSON 소스 → 템플릿 변수)
+═══════════════════════════════════════════════════════
+
+| 변수                       | JSON 경로                                    |
+|----------------------------|----------------------------------------------|
+| period_start               | period.start  →  YYYY.MM.DD 포맷             |
+| period_end                 | period.end    →  YYYY.MM.DD 포맷             |
+| weekly_summary             | weekly_summary                               |
+| total_articles             | source_file 기준 collected JSON에서 파싱      |
+| action_count               | len(top_issues)                              |
+| rank_badge                 | top_issues[i].rank → ① ② ③                 |
+| category_tag               | top_issues[i].perspective →                  |
+|                            |   competition → [경쟁 구도]                   |
+|                            |   regulation  → [규제 리스크]                 |
+|                            |   ux_trend    → [UX 트렌드]                   |
+| title                      | top_issues[i].title                          |
+| article_url                | top_issues[i].article_url                    |
+| description                | top_issues[i].description                    |
+| desc_sentence_1            | description.split(".")[0]  (단기)            |
+| desc_sentences_rest        | description.split(".")[1:] (중장기)          |
+| opportunity                | top_issues[i].opportunity                    |
+| risk_label / risk_value    | top_issues[i].risk_analysis.*                |
+|   ("제한적" 포함 항목 제외, 상위 3개만)  |                                |
+|   regulatory → 📋 규제     |                                              |
+|   competition → ⚔️ 경쟁   |                                              |
+|   technology  → 🔧 기술   |                                              |
+|   user        → 👤 사용자  |                                              |
+|   revenue     → 💰 수익   |                                              |
+| one_line_comment           | top_issues[i].one_line_comment               |
+| perspective_str            | perspectives joined " · " (괄호 제거)        |
+| issue1_title_short         | top_issues[0].title[:25]                     |
+| issue2_title_short         | top_issues[1].title[:25]                     |
+| action_comment_1           | top_issues[0].one_line_comment ("PM이라면 " 제거, "." 제거) |
+| action_comment_last        | top_issues[-1].one_line_comment (동일 처리)  |
+| analyzed_at                | analyzed_at[:16].replace("T", " ")           |
+| next_monday                | period.end 기준 다음 월요일  →  YYYY.MM.DD   |
+
+═══════════════════════════════════════════════════════
+  디자인 원칙 (reporter.py 구현 시 반드시 준수)
+═══════════════════════════════════════════════════════
+
+1. 섹션 구분선: ━━━━━━━━━━━━━━━━━━━━  (이슈 사이, PM 코멘트 앞뒤, 푸터 앞)
+2. 이슈 카드는 반드시 위 6개 블록 순서를 유지: 배지→제목→무슨일→PM의미→기회리스크→액션
+3. risk_analysis에서 "제한적" 포함 항목은 출력 제외. 모두 제한적이면 하나만 표시.
+4. description을 "." 기준으로 분리해 단기(첫 문장) / 중장기(나머지)로 나눔.
+5. 제목에 article_url 있으면 반드시 <a href> 인라인 링크로 처리.
+6. PM 종합 코멘트는 "첫째, ... 둘째, ..." 구조 고정. one_line_comment에서 "PM이라면 " 접두어 제거.
+7. 전체 메시지 4096자 초과 시 \n 기준으로 분할, 파트 간 0.5초 대기.
+8. 텔레그램 허용 태그만 사용: <b> <i> <a href="...">  (CSS 클래스·div 불가)
+-->
