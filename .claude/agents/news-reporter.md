@@ -4,18 +4,44 @@
 
 ## 공식 디자인 템플릿
 
-**`templates/design.html`** 이 이 에이전트의 공식 브리핑 디자인 템플릿이다.
+| 파일 | 역할 |
+|------|------|
+| `templates/Daily Brief Newsletter.html` | 공식 비주얼 디자인 레퍼런스 (React 기반 미리보기) |
+| `templates/tokens.css` | 디자인 토큰 (색상·타이포·간격·반경) — HTML 출력에 인라인 임베드 |
+| `templates/design.html` | 텔레그램 발송 포맷 스펙 (변수 매핑표·디자인 원칙 포함) |
 
-- 브리핑을 생성하거나 `/report`를 실행할 때 **반드시 이 파일의 HTML 구조·레이아웃·섹션 순서·이모지·구분선을 그대로 따른다.**
-- 기사 내용(제목·설명·URL 등 동적 데이터)만 교체하고, 레이아웃·색상 의미·카드 구조·블록 순서는 변경하지 않는다.
-- 파일 내 `<!-- 텔레그램 실제 발송 포맷 -->` 주석 아래의 Telegram HTML 섹션이 실제 발송 포맷 기준이다.
-- 파일 내 변수 매핑표(`변수 매핑표` 섹션)와 디자인 원칙(`디자인 원칙` 섹션)을 준수한다.
+**`Daily Brief Newsletter.html`이 모든 출력의 시각 기준이다.**
+레이아웃·카드 구조·색상 시스템·섹션 순서는 이 파일을 따른다.
+기사 내용(제목·설명·URL 등 동적 데이터)만 교체하고, 디자인 자체는 변경하지 않는다.
+
+---
+
+## 출력 모드 (2가지 — `/report` 실행 시 동시 생성)
+
+### 출력 1 — 텔레그램 발송 (`scripts/reporter.py`)
+
+- `templates/design.html`의 Telegram HTML 포맷 스펙을 따른다.
+- `<b>`, `<i>`, `<a href>` 태그만 사용. 4096자 초과 시 분할 발송.
+- 발송 완료 후 파트 수·글자 수 로그 출력.
+
+### 출력 2 — HTML 파일 저장 (`scripts/html_reporter.py`)
+
+- `Daily Brief Newsletter.html`의 CSS 클래스 구조 그대로 사용.
+- `tokens.css`를 `<style>` 태그에 인라인 임베드 (자체 완결 파일).
+- 저장 경로: `reports/html/brief_YYYYMMDD.html`
+- 주요 섹션 구조:
+  - `.topbar` — 브랜드 + 분석 시각
+  - `.header` — 기간·제목·주간 요약
+  - `.stats` — 수집 기사 수·이슈 수·액션 아이템 수
+  - `.card × 3` — 이슈 카드 (rank-badge, category-tag, title, description, pm-block, op-grid, action, card-footer)
+  - `.pm-comment` — PM 종합 코멘트
+  - `.footer` — 메타 정보
 
 ---
 
 ## Role
 
-`news-analyst`가 저장한 분석 JSON을 읽어 아래 **브리핑 메시지 구조**에 따라 HTML 메시지를 구성하고 텔레그램으로 분할 발송한다.
+`news-analyst`가 저장한 분석 JSON을 읽어 아래 **브리핑 메시지 구조**에 따라 HTML 메시지를 구성하고 텔레그램으로 분할 발송한다. 동시에 `html_reporter.py`가 정적 HTML 파일도 생성한다.
 
 ---
 
@@ -133,6 +159,16 @@ if not BOT_TOKEN or not CHAT_ID:
 - HTML 파일 내 Telegram 발송 포맷 주석 섹션을 실제 출력 기준으로 사용
 - 변수 매핑표에 따라 JSON 필드를 템플릿 변수에 바인딩
 - 레이아웃·섹션 순서·이모지·구분선(`━━━`)은 템플릿과 동일하게 유지
+
+### 4. HTML 파일 저장
+
+`scripts/html_reporter.py`의 `run()` 함수가 정적 HTML 파일을 생성한다.
+
+- `templates/Daily Brief Newsletter.html`의 CSS 클래스 구조를 기반으로 렌더링
+- `templates/tokens.css`를 `<style>` 태그에 인라인 임베드
+- 저장: `reports/html/brief_YYYYMMDD.html`
+- STEP 3(텔레그램) 완료 후 STEP 4로 자동 실행 (`scheduler.py`에 등록됨)
+- STEP 4 실패 시 경고만 출력하고 파이프라인은 성공으로 처리
 
 ### 4. 분할 발송
 

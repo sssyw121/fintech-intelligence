@@ -1,0 +1,153 @@
+/* ═══════════════════════════════════════════════════════
+   fintech-intelligence Design System — Tokens
+   서브 에이전트가 그대로 가져다 쓸 수 있는 공식 토큰 정의
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── Color · Neutral (배경/텍스트/보더) ─── */
+  --color-background-primary:   #FFFFFF;   /* 카드, 시트 */
+  --color-background-secondary: #F5F5F3;   /* 패널, 칩, 헤더 영역 */
+  --color-background-tertiary:  #EDECE8;   /* hover, pressed */
+  --color-background-canvas:    #FAFAF8;   /* 페이지 배경 */
+
+  --color-text-primary:    #1A1A1A;
+  --color-text-secondary:  #4A4A48;
+  --color-text-tertiary:   #8A8A86;
+  --color-text-disabled:   #C5C5C0;
+
+  --color-border-primary:   #1A1A1A;
+  --color-border-secondary: #D7D6D1;
+  --color-border-tertiary:  #E8E7E2;
+
+  /* ─── Color · Category (이슈 카테고리) ─── */
+  /* 경쟁 구도 — Blue */
+  --color-cat-competition-bg:    #E6F1FB;
+  --color-cat-competition-fg:    #0C447C;
+  --color-cat-competition-line:  #B6D7F4;
+
+  /* 규제 리스크 — Amber */
+  --color-cat-regulation-bg:     #FBF1D9;
+  --color-cat-regulation-fg:     #7C5512;
+  --color-cat-regulation-line:   #EBD79C;
+
+  /* UX 트렌드 — Violet */
+  --color-cat-uxtrend-bg:        #EFEBFB;
+  --color-cat-uxtrend-fg:        #4B3299;
+  --color-cat-uxtrend-line:      #D6CCEF;
+
+  /* 일반 / 기타 — Slate */
+  --color-cat-general-bg:        #ECEEF1;
+  --color-cat-general-fg:        #3D4753;
+  --color-cat-general-line:      #D2D7DD;
+
+  /* ─── Color · Accent (의미적 상태) ─── */
+  --color-accent-opportunity-bg:  #EAF3DE;
+  --color-accent-opportunity-fg:  #27500A;
+  --color-accent-opportunity-tag: #3B6D11;
+
+  --color-accent-risk-bg:         #FAECE7;
+  --color-accent-risk-fg:         #712B13;
+  --color-accent-risk-tag:        #993C1D;
+
+  --color-accent-action-bg:       #F0F3EE;
+  --color-accent-action-fg:       #2D3D24;
+
+  --color-accent-highlight:       #F5C518;  /* 북마크 */
+
+  /* ─── Typography ─── */
+  --font-sans: 'Pretendard', 'Pretendard Variable', -apple-system, BlinkMacSystemFont,
+               'Apple SD Gothic Neo', 'Noto Sans KR', 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  --font-size-xs:    11px;
+  --font-size-sm:    12px;
+  --font-size-base:  13px;
+  --font-size-md:    14px;
+  --font-size-lg:    15px;
+  --font-size-xl:    17px;
+  --font-size-2xl:   22px;
+  --font-size-3xl:   28px;
+
+  --font-weight-regular:  400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+
+  --line-height-tight:    1.35;
+  --line-height-normal:   1.55;
+  --line-height-relaxed:  1.7;
+
+  --letter-spacing-tight: -0.01em;
+  --letter-spacing-wide:  0.05em;
+
+  /* ─── Spacing scale (4pt base) ─── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ─── Radii ─── */
+  --border-radius-xs: 4px;
+  --border-radius-sm: 6px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  --border-radius-pill: 999px;
+
+  /* ─── Borders ─── */
+  --border-hairline: 0.5px solid var(--color-border-tertiary);
+  --border-thin:     1px solid var(--color-border-secondary);
+
+  /* ─── Elevation ─── */
+  --shadow-xs: 0 1px 2px rgba(20, 20, 20, 0.04);
+  --shadow-sm: 0 2px 6px rgba(20, 20, 20, 0.06), 0 1px 2px rgba(20, 20, 20, 0.04);
+  --shadow-md: 0 6px 16px rgba(20, 20, 20, 0.08), 0 2px 4px rgba(20, 20, 20, 0.04);
+  --shadow-lg: 0 16px 32px rgba(20, 20, 20, 0.10), 0 4px 8px rgba(20, 20, 20, 0.05);
+
+  /* ─── Motion ─── */
+  --ease-out:     cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:  cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast:   120ms;
+  --duration-base:   200ms;
+  --duration-slow:   320ms;
+
+  /* ─── Layout ─── */
+  --layout-content-max: 720px;
+  --layout-doc-max:     1080px;
+}
+
+/* ─── Base reset (선택적, 페이지 단위로 적용) ─── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  background: var(--color-background-canvas);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a { color: inherit; }
+
+/* Focus ring (접근성) */
+:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+  border-radius: var(--border-radius-xs);
+}
+
+/* Pretendard 웹폰트 */
+@font-face {
+  font-family: 'Pretendard Variable';
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/PretendardVariable.woff2') format('woff2-variations');
+}

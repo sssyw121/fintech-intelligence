@@ -77,6 +77,13 @@ def run_pipeline() -> bool:
         return False
     print("[OK] STEP 3 완료\n")
 
+    # STEP 4: HTML 브리핑 파일 저장
+    print("[STEP 4] html_reporter.py 실행 중...")
+    if not run_script("html_reporter.py"):
+        print("[WARN] STEP 4 실패 - HTML 저장 오류 (파이프라인은 계속)")
+    else:
+        print("[OK] STEP 4 완료\n")
+
     print(f"{'='*50}")
     print("[SUCCESS] 전체 파이프라인 완료")
     print(f"{'='*50}\n")
