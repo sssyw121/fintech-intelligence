@@ -7,6 +7,10 @@ templates/Daily Brief Newsletter.html + templates/tokens.css 디자인 시스템
 
 import html as _html
 import json
+import os
+import re
+import subprocess
+import sys
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -668,6 +672,125 @@ def render_html(analysis: dict) -> str:
 </html>"""
 
 
+# ── 환경변수 로드 ─────────────────────────────────────────────────────────────
+
+def _load_env() -> tuple[str, str]:
+    env_file = PROJECT_ROOT / ".env"
+    if env_file.exists():
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, _, v = line.partition("=")
+                os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+    return os.environ.get("TELEGRAM_BOT_TOKEN", ""), os.environ.get("TELEGRAM_CHAT_ID", "")
+
+
+# ── GitHub Pages URL 계산 ─────────────────────────────────────────────────────
+
+def _github_pages_url(rel_path: str) -> str | None:
+    """git remote URL에서 GitHub Pages URL을 자동 계산한다."""
+    try:
+        result = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            capture_output=True, text=True, cwd=str(PROJECT_ROOT),
+        )
+        remote = result.stdout.strip()
+        # https://github.com/OWNER/REPO  또는  git@github.com:OWNER/REPO.git
+        m = re.search(r"github\.com[:/]([^/]+)/([^/\n]+?)(?:\.git)?$", remote)
+        if not m:
+            return None
+        owner, repo = m.group(1), m.group(2)
+        return f"https://{owner}.github.io/{repo}/{rel_path}"
+    except Exception:
+        return None
+
+
+# ── GitHub push ───────────────────────────────────────────────────────────────
+
+def _push_to_github(out_path: Path) -> str | None:
+    """HTML 파일을 main 브랜치에 커밋·푸시하고 GitHub Pages URL을 반환한다."""
+    try:
+        rel = out_path.relative_to(PROJECT_ROOT).as_posix()
+
+        # 스테이징
+        r = subprocess.run(
+            ["git", "add", rel],
+            cwd=str(PROJECT_ROOT), capture_output=True, text=True,
+        )
+        if r.returncode != 0:
+            print(f"[html_reporter] git add 실패: {r.stderr.strip()}")
+            return None
+
+        # 변경사항 없으면 스킵
+        diff = subprocess.run(
+            ["git", "diff", "--cached", "--quiet"],
+            cwd=str(PROJECT_ROOT),
+        )
+        if diff.returncode == 0:
+            print("[html_reporter] 변경 없음 — 동일 파일이 이미 커밋됨")
+            return _github_pages_url(rel)
+
+        # 커밋
+        date_tag = out_path.stem.replace("brief_", "")
+        r = subprocess.run(
+            ["git", "commit", "-m", f"report: weekly brief {date_tag}"],
+            cwd=str(PROJECT_ROOT), capture_output=True, text=True,
+        )
+        if r.returncode != 0:
+            print(f"[html_reporter] git commit 실패: {r.stderr.strip()}")
+            return None
+
+        # main 브랜치에 push
+        r = subprocess.run(
+            ["git", "push", "origin", "HEAD:main"],
+            cwd=str(PROJECT_ROOT), capture_output=True, text=True,
+        )
+        if r.returncode != 0:
+            print(f"[html_reporter] git push 실패: {r.stderr.strip()}")
+            return None
+
+        url = _github_pages_url(rel)
+        print(f"[html_reporter] GitHub push 완료 → {url}")
+        return url
+
+    except Exception as e:
+        print(f"[html_reporter] push 오류: {e}")
+        return None
+
+
+# ── 텔레그램 링크 발송 ────────────────────────────────────────────────────────
+
+def _send_telegram_link(token: str, chat_id: str, url: str, period_label: str) -> None:
+    try:
+        import requests
+    except ImportError:
+        print("[html_reporter] requests 없음 — 링크 발송 스킵")
+        return
+
+    text = (
+        f"🌐 <b>HTML 브리핑 리포트</b>\n"
+        f"<i>{period_label}</i>\n\n"
+        f'<a href="{url}">📄 브라우저에서 보기 →</a>\n\n'
+        f"<i>* GitHub Pages 배포 직후에는 1~2분 후 접속 가능합니다.</i>"
+    )
+    payload = json.dumps(
+        {"chat_id": chat_id, "text": text, "parse_mode": "HTML",
+         "disable_web_page_preview": False},
+        ensure_ascii=False,
+    ).encode("utf-8")
+    try:
+        r = requests.post(
+            f"https://api.telegram.org/bot{token}/sendMessage",
+            data=payload,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+            timeout=10,
+        )
+        r.raise_for_status()
+        print(f"[html_reporter] 텔레그램 링크 발송 완료")
+    except Exception as e:
+        print(f"[html_reporter] 텔레그램 링크 발송 실패: {e}")
+
+
 # ── 파일 저장 ─────────────────────────────────────────────────────────────────
 
 def load_latest_analysis() -> dict:
@@ -678,15 +801,28 @@ def load_latest_analysis() -> dict:
 
 
 def run() -> Path:
+    token, chat_id = _load_env()
+
     analysis = load_latest_analysis()
     analyzed_at = analysis.get("analyzed_at", "")
     date_str = analyzed_at[:10].replace("-", "") if analyzed_at else \
                __import__("datetime").date.today().strftime("%Y%m%d")
 
+    period  = analysis.get("period", {})
+    period_label = f"{_fmt_date(period.get('start',''))} — {_fmt_date(period.get('end',''))}"
+
     HTML_OUT.mkdir(parents=True, exist_ok=True)
     out_path = HTML_OUT / f"brief_{date_str}.html"
     out_path.write_text(render_html(analysis), encoding="utf-8")
     print(f"[html_reporter] HTML 저장 완료: {out_path}")
+
+    # GitHub push → 텔레그램 링크 발송
+    url = _push_to_github(out_path)
+    if url and token and chat_id:
+        _send_telegram_link(token, chat_id, url, period_label)
+    elif not url:
+        print("[html_reporter] GitHub push 실패 — 텔레그램 링크 발송 스킵")
+
     return out_path
 
 
