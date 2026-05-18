@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>핀테크 PM 주간 인텔리전스 · 2026.05.11 — 2026.05.17</title>
+  <style>
+/* ═══════════════════════════════════════════════════════
+   fintech-intelligence Design System — Tokens
+   서브 에이전트가 그대로 가져다 쓸 수 있는 공식 토큰 정의
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── Color · Neutral (배경/텍스트/보더) ─── */
+  --color-background-primary:   #FFFFFF;   /* 카드, 시트 */
+  --color-background-secondary: #F5F5F3;   /* 패널, 칩, 헤더 영역 */
+  --color-background-tertiary:  #EDECE8;   /* hover, pressed */
+  --color-background-canvas:    #FAFAF8;   /* 페이지 배경 */
+
+  --color-text-primary:    #1A1A1A;
+  --color-text-secondary:  #4A4A48;
+  --color-text-tertiary:   #8A8A86;
+  --color-text-disabled:   #C5C5C0;
+
+  --color-border-primary:   #1A1A1A;
+  --color-border-secondary: #D7D6D1;
+  --color-border-tertiary:  #E8E7E2;
+
+  /* ─── Color · Category (이슈 카테고리) ─── */
+  /* 경쟁 구도 — Blue */
+  --color-cat-competition-bg:    #E6F1FB;
+  --color-cat-competition-fg:    #0C447C;
+  --color-cat-competition-line:  #B6D7F4;
+
+  /* 규제 리스크 — Amber */
+  --color-cat-regulation-bg:     #FBF1D9;
+  --color-cat-regulation-fg:     #7C5512;
+  --color-cat-regulation-line:   #EBD79C;
+
+  /* UX 트렌드 — Violet */
+  --color-cat-uxtrend-bg:        #EFEBFB;
+  --color-cat-uxtrend-fg:        #4B3299;
+  --color-cat-uxtrend-line:      #D6CCEF;
+
+  /* 일반 / 기타 — Slate */
+  --color-cat-general-bg:        #ECEEF1;
+  --color-cat-general-fg:        #3D4753;
+  --color-cat-general-line:      #D2D7DD;
+
+  /* ─── Color · Accent (의미적 상태) ─── */
+  --color-accent-opportunity-bg:  #EAF3DE;
+  --color-accent-opportunity-fg:  #27500A;
+  --color-accent-opportunity-tag: #3B6D11;
+
+  --color-accent-risk-bg:         #FAECE7;
+  --color-accent-risk-fg:         #712B13;
+  --color-accent-risk-tag:        #993C1D;
+
+  --color-accent-action-bg:       #F0F3EE;
+  --color-accent-action-fg:       #2D3D24;
+
+  --color-accent-highlight:       #F5C518;  /* 북마크 */
+
+  /* ─── Typography ─── */
+  --font-sans: 'Pretendard', 'Pretendard Variable', -apple-system, BlinkMacSystemFont,
+               'Apple SD Gothic Neo', 'Noto Sans KR', 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  --font-size-xs:    11px;
+  --font-size-sm:    12px;
+  --font-size-base:  13px;
+  --font-size-md:    14px;
+  --font-size-lg:    15px;
+  --font-size-xl:    17px;
+  --font-size-2xl:   22px;
+  --font-size-3xl:   28px;
+
+  --font-weight-regular:  400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+
+  --line-height-tight:    1.35;
+  --line-height-normal:   1.55;
+  --line-height-relaxed:  1.7;
+
+  --letter-spacing-tight: -0.01em;
+  --letter-spacing-wide:  0.05em;
+
+  /* ─── Spacing scale (4pt base) ─── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ─── Radii ─── */
+  --border-radius-xs: 4px;
+  --border-radius-sm: 6px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  --border-radius-pill: 999px;
+
+  /* ─── Borders ─── */
+  --border-hairline: 0.5px solid var(--color-border-tertiary);
+  --border-thin:     1px solid var(--color-border-secondary);
+
+  /* ─── Elevation ─── */
+  --shadow-xs: 0 1px 2px rgba(20, 20, 20, 0.04);
+  --shadow-sm: 0 2px 6px rgba(20, 20, 20, 0.06), 0 1px 2px rgba(20, 20, 20, 0.04);
+  --shadow-md: 0 6px 16px rgba(20, 20, 20, 0.08), 0 2px 4px rgba(20, 20, 20, 0.04);
+  --shadow-lg: 0 16px 32px rgba(20, 20, 20, 0.10), 0 4px 8px rgba(20, 20, 20, 0.05);
+
+  /* ─── Motion ─── */
+  --ease-out:     cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:  cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast:   120ms;
+  --duration-base:   200ms;
+  --duration-slow:   320ms;
+
+  /* ─── Layout ─── */
+  --layout-content-max: 720px;
+  --layout-doc-max:     1080px;
+}
+
+/* ─── Base reset (선택적, 페이지 단위로 적용) ─── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  background: var(--color-background-canvas);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a { color: inherit; }
+
+/* Focus ring (접근성) */
+:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+  border-radius: var(--border-radius-xs);
+}
+
+/* Pretendard 웹폰트 */
+@font-face {
+  font-family: 'Pretendard Variable';
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/PretendardVariable.woff2') format('woff2-variations');
+}
+
+
+/* ════════════ Page layout ════════════ */
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, #F0EEE7 0%, transparent 60%),
+    var(--color-background-canvas);
+}
+.page {
+  max-width: var(--layout-content-max);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-5) var(--space-12);
+}
+@media (max-width: 480px) {
+  .page { padding: var(--space-5) var(--space-4) var(--space-10); }
+}
+
+/* ════════════ Top bar ════════════ */
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  background: rgba(250, 250, 248, 0.78);
+  border-bottom: var(--border-hairline);
+  margin: calc(var(--space-8) * -1) calc(var(--space-5) * -1) var(--space-8);
+  padding: var(--space-3) var(--space-5);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+}
+.topbar-brand {
+  display: flex; align-items: center; gap: var(--space-2);
+  font-size: var(--font-size-sm); font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary); letter-spacing: var(--letter-spacing-tight);
+}
+.topbar-brand .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--color-text-primary); position: relative;
+}
+.topbar-brand .dot::after {
+  content: ''; position: absolute; inset: -3px;
+  border: 1px solid var(--color-text-primary); border-radius: 50%;
+  opacity: 0.35; animation: pulse 2.4s var(--ease-out) infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.35; }
+  50% { transform: scale(1.3); opacity: 0; }
+}
+
+/* ════════════ Header ════════════ */
+.header { margin-bottom: var(--space-8); }
+.header-period {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  font-size: var(--font-size-xs); font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary); letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase; margin-bottom: var(--space-3);
+}
+.header-period::before {
+  content: ''; width: 16px; height: 1px; background: var(--color-text-tertiary);
+}
+.header-title {
+  font-size: var(--font-size-3xl); font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary); letter-spacing: var(--letter-spacing-tight);
+  line-height: var(--line-height-tight); margin: 0 0 var(--space-3);
+}
+.header-summary {
+  font-size: var(--font-size-md); color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed); margin: 0; max-width: 56ch;
+}
+.header-summary mark {
+  background: linear-gradient(180deg, transparent 60%, var(--color-accent-highlight) 60%);
+  color: var(--color-text-primary); padding: 0 2px; font-weight: var(--font-weight-medium);
+}
+
+/* ════════════ Stats bar ════════════ */
+.stats {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2); margin-bottom: var(--space-8);
+}
+.stat {
+  background: var(--color-background-primary); border: var(--border-hairline);
+  border-radius: var(--border-radius-md); padding: var(--space-4);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+.stat:hover { transform: translateY(-2px); }
+.stat-label {
+  font-size: var(--font-size-xs); color: var(--color-text-tertiary);
+  margin: 0 0 var(--space-1); display: flex; align-items: center; gap: 4px;
+}
+.stat-value {
+  font-size: var(--font-size-2xl); font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary); letter-spacing: var(--letter-spacing-tight);
+  margin: 0; font-feature-settings: 'tnum';
+}
+.stat-value .unit {
+  font-size: var(--font-size-md); font-weight: var(--font-weight-regular);
+  color: var(--color-text-tertiary); margin-left: 2px;
+}
+@media (max-width: 480px) {
+  .stats { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .stat { padding: var(--space-3); }
+  .stat-value { font-size: 18px; }
+}
+
+/* ════════════ Section header ════════════ */
+.section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-3); margin-bottom: var(--space-4); flex-wrap: wrap;
+}
+.section-title {
+  font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold);
+  color: var(--color-text-tertiary); letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase; margin: 0;
+  display: flex; align-items: center; gap: var(--space-2);
+}
+.section-title-num {
+  display: inline-flex; width: 18px; height: 18px;
+  align-items: center; justify-content: center;
+  background: var(--color-text-primary); color: var(--color-background-primary);
+  border-radius: 50%; font-size: 10px; font-weight: var(--font-weight-semibold);
+}
+
+/* ════════════ Issue card ════════════ */
+.card {
+  background: var(--color-background-primary); border: var(--border-hairline);
+  border-radius: var(--border-radius-lg); padding: var(--space-5);
+  margin-bottom: var(--space-3); position: relative;
+  transition: transform var(--duration-base) var(--ease-out),
+              box-shadow var(--duration-base) var(--ease-out),
+              border-color var(--duration-base) var(--ease-out);
+  animation: cardIn 0.6s var(--ease-out) both;
+}
+.card:hover {
+  transform: translateY(-3px); box-shadow: var(--shadow-md);
+  border-color: var(--color-border-secondary);
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card-stagger-0 { animation-delay: 0.05s; }
+.card-stagger-1 { animation-delay: 0.18s; }
+.card-stagger-2 { animation-delay: 0.30s; }
+
+.card-header {
+  display: flex; align-items: center; gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.rank-badge {
+  display: inline-flex; width: 24px; height: 24px;
+  align-items: center; justify-content: center;
+  background: var(--color-background-secondary); color: var(--color-text-primary);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold);
+}
+.category-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: var(--font-size-xs); font-weight: var(--font-weight-medium);
+  padding: 3px 9px; border-radius: var(--border-radius-pill);
+  letter-spacing: var(--letter-spacing-tight);
+}
+.category-tag[data-cat="competition"] {
+  background: var(--color-cat-competition-bg); color: var(--color-cat-competition-fg);
+}
+.category-tag[data-cat="regulation"] {
+  background: var(--color-cat-regulation-bg); color: var(--color-cat-regulation-fg);
+}
+.category-tag[data-cat="ux_trend"] {
+  background: var(--color-cat-uxtrend-bg); color: var(--color-cat-uxtrend-fg);
+}
+.category-tag[data-cat="general"] {
+  background: var(--color-cat-general-bg); color: var(--color-cat-general-fg);
+}
+.category-tag-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: currentColor;
+}
+.card-source {
+  margin-left: auto; font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+.card-title {
+  font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary); letter-spacing: var(--letter-spacing-tight);
+  line-height: var(--line-height-tight); margin: 0 0 var(--space-3);
+}
+.card-title a { color: inherit; text-decoration: none; }
+.card-title a:hover { text-decoration: underline; }
+.card-description {
+  font-size: var(--font-size-base); color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed); margin: 0 0 var(--space-4);
+}
+.card-divider {
+  border: none; border-top: var(--border-hairline); margin: var(--space-4) 0;
+}
+
+/* PM block */
+.pm-block {
+  background: var(--color-background-secondary);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-3) var(--space-4); margin-bottom: var(--space-3);
+}
+.pm-block-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-2); margin-bottom: var(--space-2);
+}
+.pm-block-label {
+  font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold);
+  color: var(--color-text-tertiary); letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase; display: flex; align-items: center; gap: 6px; margin: 0;
+}
+.pm-body {
+  font-size: var(--font-size-base); color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed); margin: 0;
+}
+.pm-extra {
+  margin-top: var(--space-2); padding-top: var(--space-2);
+  border-top: var(--border-hairline);
+  font-size: var(--font-size-sm); color: var(--color-text-tertiary);
+  line-height: var(--line-height-relaxed); display: grid; gap: 4px;
+}
+.pm-extra .label {
+  font-weight: var(--font-weight-semibold); color: var(--color-text-secondary);
+  font-size: var(--font-size-xs); letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase; margin-top: var(--space-2);
+}
+
+/* Opportunity / Risk */
+.op-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: var(--space-2); margin-bottom: var(--space-3);
+}
+@media (max-width: 480px) { .op-grid { grid-template-columns: 1fr; } }
+.op-tile { border-radius: var(--border-radius-md); padding: var(--space-3); }
+.op-tile.opp { background: var(--color-accent-opportunity-bg); color: var(--color-accent-opportunity-fg); }
+.op-tile.risk { background: var(--color-accent-risk-bg); color: var(--color-accent-risk-fg); }
+.op-tile-head {
+  font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold);
+  display: flex; align-items: center; gap: 5px;
+  margin-bottom: var(--space-1); letter-spacing: var(--letter-spacing-tight);
+}
+.op-tile.opp .op-tile-head { color: var(--color-accent-opportunity-tag); }
+.op-tile.risk .op-tile-head { color: var(--color-accent-risk-tag); }
+.op-tile-body { font-size: var(--font-size-sm); line-height: var(--line-height-normal); margin: 0; }
+
+/* Action item */
+.action {
+  display: flex; align-items: flex-start; gap: var(--space-2);
+  background: var(--color-accent-action-bg);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-3) var(--space-4); color: var(--color-accent-action-fg);
+}
+.action-check {
+  flex: 0 0 18px; width: 18px; height: 18px; border-radius: 4px;
+  background: var(--color-accent-action-fg); color: var(--color-accent-action-bg);
+  display: inline-flex; align-items: center; justify-content: center; margin-top: 1px;
+}
+.action-body { flex: 1; min-width: 0; }
+.action-label {
+  font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-wide); text-transform: uppercase;
+  margin: 0 0 2px; opacity: 0.7;
+}
+.action-text { font-size: var(--font-size-base); line-height: var(--line-height-normal); margin: 0; }
+
+/* Card footer */
+.card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-3); margin-top: var(--space-4);
+  padding-top: var(--space-3); border-top: var(--border-hairline);
+}
+.card-footer-meta {
+  display: flex; align-items: center; gap: var(--space-3);
+  font-size: var(--font-size-xs); color: var(--color-text-tertiary);
+}
+.card-footer-meta-item { display: inline-flex; align-items: center; gap: 4px; }
+.footer-link {
+  text-decoration: none; color: var(--color-text-secondary);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+.footer-link:hover { border-color: var(--color-text-secondary); }
+
+/* ════════════ PM comment ════════════ */
+.pm-comment {
+  background: var(--color-text-primary); color: var(--color-background-canvas);
+  border-radius: var(--border-radius-lg); padding: var(--space-6);
+  margin-top: var(--space-8); margin-bottom: var(--space-6);
+  position: relative; overflow: hidden;
+}
+.pm-comment::before {
+  content: '"'; position: absolute; top: -32px; right: 24px;
+  font-size: 180px; font-family: Georgia, serif;
+  color: rgba(255, 255, 255, 0.06); line-height: 1; pointer-events: none;
+}
+.pm-comment-label {
+  font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-wide); text-transform: uppercase;
+  opacity: 0.55; margin: 0 0 var(--space-3);
+  display: flex; align-items: center; gap: var(--space-2);
+}
+.pm-comment-body {
+  font-size: var(--font-size-md); line-height: var(--line-height-relaxed);
+  margin: 0 0 var(--space-3); max-width: 60ch;
+}
+.pm-comment-body strong {
+  font-weight: var(--font-weight-semibold);
+  background: linear-gradient(180deg, transparent 62%, rgba(245, 197, 24, 0.7) 62%);
+  padding: 0 2px;
+}
+.pm-comment-list { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-2); }
+.pm-comment-item {
+  display: flex; align-items: flex-start; gap: var(--space-2);
+  font-size: var(--font-size-base); line-height: var(--line-height-normal); opacity: 0.92;
+}
+.pm-comment-item-num {
+  flex: 0 0 18px; width: 18px; height: 18px; border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: var(--font-weight-semibold); margin-top: 2px;
+}
+
+/* ════════════ Footer ════════════ */
+.footer {
+  font-size: var(--font-size-xs); color: var(--color-text-tertiary);
+  display: flex; justify-content: space-between; gap: var(--space-3);
+  padding-top: var(--space-4); border-top: var(--border-hairline); flex-wrap: wrap;
+}
+
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Top bar ── -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <span class="dot"></span>
+      fintech-intelligence
+    </div>
+    <span style="font-size:var(--font-size-xs);color:var(--color-text-tertiary);">
+      분석 2026-05-18 23:52
+    </span>
+  </div>
+
+  <!-- ── Header ── -->
+  <header class="header">
+    <div class="header-period">2026.05.11 — 2026.05.17</div>
+    <h1 class="header-title">핀테크 PM<br>주간 인텔리전스</h1>
+    <p class="header-summary">이번 주 핀테크 시장은 18일부터 2차 고유가 지원금 신청 접수, &quot;월세도 카드결제… 집업페이로 &#x27;100점짜리 집&#x27;에서 사세요&quot;[희망 2026 부... 등이 주요 화두로, 총 21건의 기사가 수집됐습니다.</p>
+  </header>
+
+  <!-- ── Stats bar ── -->
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-label">📦 수집 기사</p>
+      <p class="stat-value">21<span class="unit">건</span></p>
+    </div>
+    <div class="stat">
+      <p class="stat-label">🔥 주요 이슈</p>
+      <p class="stat-value">3<span class="unit">건</span></p>
+    </div>
+    <div class="stat">
+      <p class="stat-label">✅ 액션 아이템</p>
+      <p class="stat-value">3<span class="unit">개</span></p>
+    </div>
+  </div>
+
+  <!-- ── Issue cards ── -->
+  <div class="section-head">
+    <h2 class="section-title">
+      <span class="section-title-num">3</span>
+      TOP 이슈
+    </h2>
+  </div>
+
+  
+  <div class="card card-stagger-0">
+    <div class="card-header">
+      <span class="rank-badge">1</span>
+      <span class="category-tag" data-cat="ux_trend">
+        <span class="category-tag-dot"></span>
+        UX 트렌드
+      </span>
+      <span class="card-source"><a href="https://n.news.naver.com/mnews/article/022/0004128744?sid=102" target="_blank" rel="noopener" class="footer-link">원문</a></span>
+    </div>
+
+    <h2 class="card-title">
+      <a href="https://n.news.naver.com/mnews/article/022/0004128744?sid=102" target="_blank" rel="noopener">18일부터 2차 고유가 지원금 신청 접수</a>
+    </h2>
+    <p class="card-description">18일부터 2차 고유가 지원금 신청 접수. 카카오·토스·케이 뱅크, 카카오페이 및 네이버페이 간편결제 앱을 통해서도 가능하다. 모바일 또는 카드형 지역사랑상품권은 주소지 관할 지자체의 지역사랑상품권 앱이나 누리집, 지류형 지역사랑상품권이나 선불카드는 주소지 관할 읍·면·동 행정복지센터 또는 주민센터, 읍·면 사무소에서...</p>
+
+    <hr class="card-divider">
+
+    <div class="pm-block">
+      <div class="pm-block-head">
+        <p class="pm-block-label">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          PM 관점 의미
+        </p>
+      </div>
+      <p class="pm-body">18일부터 2차 고유가 지원금 신청 접수.</p>
+      
+          <div class="pm-extra">
+            <span class="label">단기</span>
+            18일부터 2차 고유가 지원금 신청 접수.
+            <span class="label">중장기</span>
+            카카오·토스·케이 뱅크, 카카오페이 및 네이버페이 간편결제 앱을 통해서도 가능하다. 모바일 또는 카드형 지역사랑상품권은 주소지 관할 지자체의 지역사랑상품권 앱이나 누리집, 지류형 지역사랑상품권이나 선불카드는 주소지 관할 읍·면·동 행정복지센터 또는 주민센터, 읍·면 사무소에서.
+          </div>
+    </div>
+
+    <div class="op-grid">
+      
+        <div class="op-tile opp">
+          <div class="op-tile-head">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+            </svg>
+            기회
+          </div>
+          <p class="op-tile-body">사용자 행동 변화를 전환율·리텐션 개선 기회로 연결해 핵심 지표 향상 가능</p>
+        </div>
+      
+        <div class="op-tile risk">
+          <div class="op-tile-head">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4m0 4h.01"/>
+            </svg>
+            리스크
+          </div>
+          <p class="op-tile-body"><strong>경쟁:</strong> 경쟁사가 UX 트렌드를 먼저 반영할 경우 차별화 포인트를 잃고 사용자 유입이 경쟁사로 편중될 수 있다.<br><strong>기술:</strong> 새로운 UX 패턴 구현을 위한 추가 개발 공수와 기존 시스템과의 통합 복잡성이 증가할 수 있다.<br><strong>사용자:</strong> UX 트렌드 대응 지연 시 사용자 불만이 증가하고 리텐션·NPS 지표가 하락할 수 있다.</p>
+        </div>
+    </div>
+
+    <div class="action">
+      <div class="action-check">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+      </div>
+      <div class="action-body">
+        <p class="action-label">이번 주 액션 아이템</p>
+        <p class="action-text">PM이라면 UX 트렌드를 사용자 인터뷰에서 검증하고 다음 스프린트에 반영해야 한다.</p>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <div class="card-footer-meta">
+        <span class="card-footer-meta-item">이슈 1</span>
+        <span class="card-footer-meta-item"><a href="https://n.news.naver.com/mnews/article/022/0004128744?sid=102" target="_blank" rel="noopener" class="footer-link">원문 보기 →</a></span>
+      </div>
+    </div>
+  </div>
+  <div class="card card-stagger-1">
+    <div class="card-header">
+      <span class="rank-badge">2</span>
+      <span class="category-tag" data-cat="competition">
+        <span class="category-tag-dot"></span>
+        경쟁 구도
+      </span>
+      <span class="card-source"><a href="https://n.news.naver.com/mnews/article/014/0005522629?sid=102" target="_blank" rel="noopener" class="footer-link">원문</a></span>
+    </div>
+
+    <h2 class="card-title">
+      <a href="https://n.news.naver.com/mnews/article/014/0005522629?sid=102" target="_blank" rel="noopener">&quot;월세도 카드결제… 집업페이로 &#x27;100점짜리 집&#x27;에서 사세요&quot;[희망 2026 부...</a>
+    </h2>
+    <p class="card-description">&quot;월세도 카드결제… 집업페이로 &#x27;100점짜리 집&#x27;에서 사세요&quot;[희망 2026 부.... 통상 온라인에서 물품을 구매할 때처럼 원하는 카드나 간편결제를 통해 직접 결제하는 방식이다. 카드 포인트·적립·할부도 가능하다. 기존의 계좌·자동이체 방식에서 변화를 준 것이다. 관련 사업의 시장 규모는 약 100조원으로 작지 않다. 데브디㈜는 저렴한 수수료와 함께 신뢰성을 바탕으로 기반을...</p>
+
+    <hr class="card-divider">
+
+    <div class="pm-block">
+      <div class="pm-block-head">
+        <p class="pm-block-label">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          PM 관점 의미
+        </p>
+      </div>
+      <p class="pm-body">&quot;월세도 카드결제… 집업페이로 &#x27;100점짜리 집&#x27;에서 사세요&quot;[희망 2026 부.</p>
+      
+          <div class="pm-extra">
+            <span class="label">단기</span>
+            &quot;월세도 카드결제… 집업페이로 &#x27;100점짜리 집&#x27;에서 사세요&quot;[희망 2026 부.
+            <span class="label">중장기</span>
+            통상 온라인에서 물품을 구매할 때처럼 원하는 카드나 간편결제를 통해 직접 결제하는 방식이다. 카드 포인트·적립·할부도 가능하다. 기존의 계좌·자동이체 방식에서 변화를 준 것이다. 관련 사업의 시장 규모는 약 100조원으로 작지 않다. 데브디㈜는 저렴한 수수료와 함께 신뢰성을 바탕으로 기반을.
+          </div>
+    </div>
+
+    <div class="op-grid">
+      
+        <div class="op-tile opp">
+          <div class="op-tile-head">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+            </svg>
+            기회
+          </div>
+          <p class="op-tile-body">경쟁사의 신규 서비스 출시 타이밍을 분석해 차별화 기능을 선제 기획할 기회</p>
+        </div>
+      
+        <div class="op-tile risk">
+          <div class="op-tile-head">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4m0 4h.01"/>
+            </svg>
+            리스크
+          </div>
+          <p class="op-tile-body"><strong>규제:</strong> 경쟁 구도 변화 자체는 규제 리스크를 직접 유발하지 않으나, 경쟁사의 규제 준수 여부가 시장 진입 장벽에 영향을 줄 수 있다.<br><strong>경쟁:</strong> 빅테크의 공격적 서비스 확장으로 자사 점유율 및 사용자 기반이 잠식될 위험이 있다.<br><strong>기술:</strong> 경쟁사의 신기술 도입 속도에 뒤처질 경우 기술 격차가 벌어져 장기 경쟁력이 약화될 수 있다.</p>
+        </div>
+    </div>
+
+    <div class="action">
+      <div class="action-check">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+      </div>
+      <div class="action-body">
+        <p class="action-label">이번 주 액션 아이템</p>
+        <p class="action-text">PM이라면 경쟁사 신기능 출시 주기를 추적해 자사 로드맵 우선순위를 조정해야 한다.</p>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <div class="card-footer-meta">
+        <span class="card-footer-meta-item">이슈 2</span>
+        <span class="card-footer-meta-item"><a href="https://n.news.naver.com/mnews/article/014/0005522629?sid=102" target="_blank" rel="noopener" class="footer-link">원문 보기 →</a></span>
+      </div>
+    </div>
+  </div>
+  <div class="card card-stagger-2">
+    <div class="card-header">
+      <span class="rank-badge">3</span>
+      <span class="category-tag" data-cat="regulation">
+        <span class="category-tag-dot"></span>
+        규제 리스크
+      </span>
+      <span class="card-source"><a href="https://n.news.naver.com/mnews/article/016/0002644475?sid=101" target="_blank" rel="noopener" class="footer-link">원문</a></span>
+    </div>
+
+    <h2 class="card-title">
+      <a href="https://n.news.naver.com/mnews/article/016/0002644475?sid=101" target="_blank" rel="noopener">“포용금융 성패, 대출확대 아닌 ‘중간위험 차주’ 선별·관리에 달려...</a>
+    </h2>
+    <p class="card-description">“포용금융 성패, 대출확대 아닌 ‘중간위험 차주’ 선별·관리에 달려.... 현금흐름을 실시간 분석해 담보 없이도 상환 능력을 입증할 수 있는 ‘현금흐름 기반 언더라이팅’ 구조를 만들어야 한다”고 말했다. 이어 “상거래 데이터와 오픈뱅킹, 마이데이터, 대안 신용정보 플랫폼 등을 하나로 이으면서 개인정보보호 원칙도 훼손하지 않는 정보 고속도로가 필요하다”고 덧붙였다.</p>
+
+    <hr class="card-divider">
+
+    <div class="pm-block">
+      <div class="pm-block-head">
+        <p class="pm-block-label">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          PM 관점 의미
+        </p>
+      </div>
+      <p class="pm-body">“포용금융 성패, 대출확대 아닌 ‘중간위험 차주’ 선별·관리에 달려.</p>
+      
+          <div class="pm-extra">
+            <span class="label">단기</span>
+            “포용금융 성패, 대출확대 아닌 ‘중간위험 차주’ 선별·관리에 달려.
+            <span class="label">중장기</span>
+            현금흐름을 실시간 분석해 담보 없이도 상환 능력을 입증할 수 있는 ‘현금흐름 기반 언더라이팅’ 구조를 만들어야 한다”고 말했다. 이어 “상거래 데이터와 오픈뱅킹, 마이데이터, 대안 신용정보 플랫폼 등을 하나로 이으면서 개인정보보호 원칙도 훼손하지 않는 정보 고속도로가 필요하다”고 덧붙였다.
+          </div>
+    </div>
+
+    <div class="op-grid">
+      
+        <div class="op-tile opp">
+          <div class="op-tile-head">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+            </svg>
+            기회
+          </div>
+          <p class="op-tile-body">규제 선제 준수로 신뢰도 확보 및 후발 경쟁사 대비 진입장벽 활용 기회</p>
+        </div>
+      
+        <div class="op-tile risk">
+          <div class="op-tile-head">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4m0 4h.01"/>
+            </svg>
+            리스크
+          </div>
+          <p class="op-tile-body"><strong>규제:</strong> 새로운 규제 시행 시 준수 비용 증가 및 서비스 기능 제한이 발생하며, 미준수 시 과징금·영업정지 리스크가 있다.<br><strong>경쟁:</strong> 규제 선제 대응 기업이 인허가 우위를 점할 경우 후발주자의 시장 진입이 지연될 수 있다.<br><strong>기술:</strong> 규제 준수를 위한 시스템 개발·변경이 필요해 기술 부채가 누적되거나 개발 리소스가 분산될 수 있다.</p>
+        </div>
+    </div>
+
+    <div class="action">
+      <div class="action-check">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+      </div>
+      <div class="action-body">
+        <p class="action-label">이번 주 액션 아이템</p>
+        <p class="action-text">PM이라면 규제 변경사항을 법무팀과 즉시 공유하고 컴플라이언스 체크리스트를 갱신해야 한다.</p>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <div class="card-footer-meta">
+        <span class="card-footer-meta-item">이슈 3</span>
+        <span class="card-footer-meta-item"><a href="https://n.news.naver.com/mnews/article/016/0002644475?sid=101" target="_blank" rel="noopener" class="footer-link">원문 보기 →</a></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PM 종합 코멘트 ── -->
+  
+  <section class="pm-comment">
+    <p class="pm-comment-label">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+      </svg>
+      PM 종합 코멘트
+    </p>
+    <p class="pm-comment-body">
+      이번 주 핀테크 시장은 <strong>UX 트렌드 · 경쟁 구도 · 규제 리스크</strong> 세 축이 동시에 움직인 주였습니다.
+      '18일부터 2차 고유가 지원금 신청 접수', '&quot;월세도 카드결제… 집업페이로 &#x27;100점짜리 ' 등 굵직한 이슈가 맞물리며 시장 전반의 긴장감이 높아졌습니다.
+      지금 이 시점에 PM이라면 다음에 집중해야 합니다.
+    </p>
+    <ul class="pm-comment-list">
+      
+        <li class="pm-comment-item">
+          <span class="pm-comment-item-num">1</span>
+          <span>UX 트렌드를 사용자 인터뷰에서 검증하고 다음 스프린트에 반영해야 한다.</span>
+        </li>
+        <li class="pm-comment-item">
+          <span class="pm-comment-item-num">2</span>
+          <span>경쟁사 신기능 출시 주기를 추적해 자사 로드맵 우선순위를 조정해야 한다.</span>
+        </li>
+        <li class="pm-comment-item">
+          <span class="pm-comment-item-num">3</span>
+          <span>규제 변경사항을 법무팀과 즉시 공유하고 컴플라이언스 체크리스트를 갱신해야 한다.</span>
+        </li>
+    </ul>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer class="footer">
+    <span>수집 기사 21건 · 분석 시각 2026-05-18 23:52 · 다음 발행 2026.05.18(월) 09:00</span>
+    <span>🤖 fintech-intelligence</span>
+  </footer>
+
+</div>
+</body>
+</html>
